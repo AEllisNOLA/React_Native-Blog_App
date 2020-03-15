@@ -37,3 +37,9 @@ a) install react-navigation with `npm install react-navigation`
 b) install other dependencies with `expo install react-native-gesture-handler react-native-reanimated react-native-screens react-native-safe-area-context @react-native-community/masked-view`
 c) Install React Navigation Stack with `npm install react-navigation-stack @react-native-community/masked-view`
 d) Start app and clear cache with `npm start -c`
+
+# 01. Basic Navigation Setup
+
+# 02. Adding Context
+
+- This project uses *Global State Management*. Data will be centralized within a Blog Post Provider file, allowing all child components to access the data rather than drilling down props.
