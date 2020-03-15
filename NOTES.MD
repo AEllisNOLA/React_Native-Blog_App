@@ -42,4 +42,50 @@ d) Start app and clear cache with `npm start -c`
 
 # 02. Adding Context
 
-- This project uses *Global State Management*. Data will be centralized within a Blog Post Provider file, allowing all child components to access the data rather than drilling down props.
+- This project uses *Global State Management*. Data will be centralized within a Blog Post Provider file, allowing all child components to access the data rather than drilling down props. This is possible thanks to React Hooks' new *Context* system. Similar functionality can be implemented with Redux, as well.
+
+1) Wrap *React Navigation Stack Navigator* with *Blog Post Provider*. Rather than simply exporting `export default createAppContainer(navigator)`, assign it to a variable. 
+
+2) Export default a custom component that returns the variable from step 1.
+
+`
+const App = createAppContainer(navigator)
+
+export default () => {
+  return (
+    <App />
+  )
+}
+`
+
+3) Create a new *Context* directory and add *BlogContext.js* In that file, create a pipe for the information, as well as the *Provider* that will house the information. Export the *Provider* as a named export. The *Context* will later be exported as a default.
+
+`
+import React, { createContext } from 'react'
+
+/* BlogContext pipes the data from the overarching BlogPostProvider to children components */
+const BlogContext = createContext()
+
+/* BlogProvider is the component where the data will be stored */
+export const BlogProvider = ({ children }) => {
+    return (
+        <BlogContext.Provider>
+            {children}
+        </BlogContext.Provider>
+    )
+}
+`
+
+4) Import *BlogProvider* as a named import in *App.js* and wrap the default export <App /> in the <BlogProvider>
+
+- At this point, the overarching BlogPostProvider is wrapping the React Stack Navigator, which includes the App and all of its components, screens, etc. 
+
+5) In *BlogContext.js*, export default BlogContext.
+
+- <BlogContext.Provider> accepts info through a *value* prop. That value is then accessible by children if it is imported.
+
+6) In a child, import *useContext* from React, as well as the *Context* exported in step 5. Inside of the component, use *useContext()* and pass in the Context you just imported. Such as: 
+
+`const value = useContext(BlogContext)`
+
+Now the information included in the *value* prop in the Provider is funneling down to the child component and that information can be used.
