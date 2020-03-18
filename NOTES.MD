@@ -89,3 +89,39 @@ export const BlogProvider = ({ children }) => {
 `const value = useContext(BlogContext)`
 
 Now the information included in the *value* prop in the Provider is funneling down to the child component and that information can be used.
+
+# 03. Integrating State to Provider
+- Nothing groundbreaking here. Pretty self-explanatory. Added state within the provider and created a helper function to add a post. Passed the data and the helper function down to the child using a FlatList.
+
+# 04. Implementing useReducer
+
+1) Add a *useReducer* segment within the *Provider*, passing in the *reducer* to use and the *inital state*. Deconstuct the *state* and *dispatch*.
+`const [blogPosts, dispatch] = useReducer(blogReducer, [])`
+
+2) Create the *reducer* from step 1 and implement a switch statement.
+`
+const blogReducer = (state, action) => {
+    switch(action.type) {
+        case 'add_blogpost':
+            return [...state, {title: `Blog Post #${state.length + 1}`}]
+        default:
+            return state
+    }
+}
+`
+
+3) Temporarily create an addBlogPost helper function. Within the function, dispatch the type you want to use.
+`
+ const addBlogPost = () => {
+        dispatch({ type: 'add_blogpost'})
+    }
+`
+
+4) Include the helper function in the *Provider*'s value prop.
+`
+return (
+        <BlogContext.Provider value={{ data: blogPosts, addBlogPost}}>
+            {children}
+        </BlogContext.Provider>
+    )
+`
