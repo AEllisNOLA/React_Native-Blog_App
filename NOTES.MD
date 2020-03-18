@@ -125,3 +125,81 @@ return (
         </BlogContext.Provider>
     )
 `
+
+# 05. Automating Context Creation
+- In situations where you have more than one type of data flowing through the app, it is a good idea to automate new *Context*s to abide by the DRY principle. Many of the steps from *04. Implementing useReducer* would need to be repeated for each *Context* being created.
+
+1) Create a new file, createDataContext.js. Import React, {createContext, useReducer}.
+
+2) Export a function with the arguments of *reducer*, *actions*, and *initialState*
+
+`
+import React, {createContext, useReducer} from 'react'
+
+export default (reducer, actions, initialState) => {}
+`
+
+3) Within the function created in step 2, create a *Context* object and the *Provider* function. Feed the *Provider* function a destructured *children* argument.
+`
+const Context = createContext()
+
+const Provider = ({children}) => {}
+`
+
+4) Within the body of the *Provider* function set up in step 3, add the useReducer line and pass in the reducer function to use and the initial state. Return the proper JSX with a value prop with state.
+`
+const Provider = ({children}) => {
+  const [state, dispatch] = useReducer(reducer, initalState)
+
+  return (
+    <Context.Provider value={{ state }}>
+      {children}
+    </Context.Provider>
+  )
+}
+`
+
+5) End the overall function by returning the Context object and Provider component
+
+- The process of creating a new Context is now in a reusable function.
+
+6) Refactor BlogContext.js by importing the file created in steps 1-5. Delete the line that creates the BlogContext object and the entire BlogProvider function. Delete the BlogContext export. Instead, export the deconstructed Context object and Provider component from the createDataContext file created in steps 1-5, addung the reducer, action object and initial state needed.
+
+`
+export const {Context, Provider} = createDataContext(blogReducer {addBlogPost}, [])
+`
+
+7) Dispatch currently lives in the *Provider* component within the generic createDataContext file. To grant access to it in the *Context*, call any helper functions with the *dispatch* argument. Inside the helper function, return a new function that called the dispatch.
+
+`
+const addBlogPost = (dispatch) = {
+  return () => {
+    dispatch({type: 'add_blogpost})
+  }
+}
+`
+
+8) Inside createDataContext.js, the actions object argument has all of the functions that will change the state (i.e. call dispatch). After useReducer is set up, loop through the actions object. For every key, call the dispatch argument with the key. Have that call return a function that will be able to be passed in the value prop of the *Provider* Component. Rather than passing individual functions, the entire boundActions object is being spread in.
+
+`
+const boundActions = {}
+
+for (let key in actions) {
+    boundActions[key] = actions[key](dispatch)
+}
+
+
+return (
+    <Context.Provider value={{ state, ...boundActions }}>
+      {children}
+    </Context.Provider>
+  )
+`
+
+9) Most of the work is now done. Since BlogContext.js is exporting Context and Provider, imports and references need to be fixed. 
+
+  a) IndexScreen should import {Context} rather than {BlogContext} and all references to "BlogContext" should be changed to "Context". "data" should be changed to "state" in the useContext initialization, and "state" should be passed into the FlatList as the data source.
+
+  b) In App.js, import {Provider} instead of {BlogProvider}. Change the JSX at the bottom to <Provider> rather than <BlogProvider>
+
+  - All of that work essentially rebuilt *Redux* using React's *Context* system. 
