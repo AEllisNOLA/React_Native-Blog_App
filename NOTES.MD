@@ -40,6 +40,43 @@ d) Start app and clear cache with `npm start -c`
 
 # 01. Basic Navigation Setup
 
+1) Create an inital Component Screen to display.
+
+`
+import React from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+
+const IndexScreen = () => {
+  return (
+    <View>
+      <Text>Hello, World!</Text>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({})
+
+export default IndexScreen
+`
+
+2) In App.js, import createStackNavigator from 'react-navigation' and createAppContainer from 'react-navigation-stack'. Also import the initial screen created in step 1.
+
+3) Create naviator variable using createStackNavigator. In the first object argument, pass the screen created in step 1 as a key/value. In the second object argument, add any configuration options you wish to include, such as the inital route and navigation options.
+
+`
+const navigator = createStackNavigator({
+  Index: IndexScreen
+}, {
+  initialRouteName: 'Index',
+  defaultNavigationOptions: {
+    title: 'Blogs'
+  }
+})
+`
+
+4) Lasly, `export default createAppContainer(navigator)`
+
+
 # 02. Adding Context
 
 - This project uses *Global State Management*. Data will be centralized within a Blog Post Provider file, allowing all child components to access the data rather than drilling down props. This is possible thanks to React Hooks' new *Context* system. Similar functionality can be implemented with Redux, as well.
@@ -214,3 +251,22 @@ return (
   3) add the new function to the createDataContext() call in the export area
   
   4) destructure the new helper function in the file you need to use it and apply it.
+
+# 07. Navigating and Showing Individual Posts
+  1) Create a new screen (the destination screen) for individual posts. Import that component into App.js and include it in the first argument object of createStackNavigator().
+
+  2) In screens that are going to use navigation (the origin screen), you must import the navigation function from the included prop object. Destructure {navigation} as an argument.
+
+  3) The navigation() function can be used with an onPress attribute in the origin screen. Include a string of where to navigate to (added to App.js in step 1) as the first argument. An optional second argument object allows for passing information to the destination screen, such as an id or title.
+
+  4) In the destination screen, pass {navigation} as a prop as well. To retrieve the information passed from the origin screen in step 3, use navigation.getParam('id') or whatever key you are looking for.
+
+  - Those steps hand off information from the origin screen to the destination screen. To access the state, the destination screen has to tap into the context. Done this before, but a quick recap:
+
+  5) Import *useContext* and the context you wish to tap into. Desctructure out the state (coming from the value property in the Context file) from useContext(ContextName)
+
+  6) From here, use the find method on state and return the proper post by making sure the item's id and the id passed from the origin screen are the same.
+
+  `
+  const blogPost = state.find(blogPost => blogPost.id === navigation.getParam('id'))
+  `
