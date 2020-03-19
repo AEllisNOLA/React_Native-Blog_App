@@ -203,3 +203,14 @@ return (
   b) In App.js, import {Provider} instead of {BlogProvider}. Change the JSX at the bottom to <Provider> rather than <BlogProvider>
 
   - All of that work essentially rebuilt *Redux* using React's *Context* system. 
+
+  # 06. Adding Delete Functionality
+- Any time you want to add new functionality to the *Context*, you have to: 
+  
+  1) create a helper function that will call the dispatch function, 
+  
+  2) add the case to the reducer
+  
+  3) add the new function to the createDataContext() call in the export area
+  
+  4) destructure the new helper function in the file you need to use it and apply it.
