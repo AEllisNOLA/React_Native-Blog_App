@@ -283,7 +283,7 @@ return (
   `
   IndexScreen.navigationOptions = ({navigation}) => {
     return {
-      headerRight: <TouchableOpacity onPress={() => navigation.navigate('Go here')}>ICON HERE</TouchableOpacity>
+      headerRight: () => <TouchableOpacity onPress={() => navigation.navigate('Go here')}>ICON HERE</TouchableOpacity>
     }
   }
   `

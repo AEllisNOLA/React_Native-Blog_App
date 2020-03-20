@@ -8,7 +8,6 @@ const IndexScreen = ({ navigation }) => {
 
     return (
         <View>
-            <Button title='Add Post' onPress={addBlogPost} />
             <FlatList
                 data={state}
                 keyExtractor={blogPost => blogPost.id}
@@ -33,7 +32,7 @@ const IndexScreen = ({ navigation }) => {
 // Customize items displayed in header
 IndexScreen.navigationOptions = ({ navigation }) => {
     return {
-        headerRight: <TouchableOpacity onPress={() => navigation.navigate('Create')}>
+        headerRight: () => <TouchableOpacity onPress={() => navigation.navigate('Create')}>
             <Feather name='plus' style={styles.plusIcon} />
         </TouchableOpacity>
     }
