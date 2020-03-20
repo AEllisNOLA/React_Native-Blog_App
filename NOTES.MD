@@ -270,3 +270,20 @@ return (
   `
   const blogPost = state.find(blogPost => blogPost.id === navigation.getParam('id'))
   `
+
+  # 08. Header Navigation
+- Navigation within the header is fairly similar to ordinary navigation with a few wrinkles.
+
+  1) Create the new destination screen, import and export as necessary and add it to the stackNavigator object in App.js.
+
+  2) Within the origin screen (with the header you wish to add navigation to), outside of the functional component you can add a function that will be called automatically whenever the origin screen is about to be displayed. This object can return customization details for the header. Return a <TouchableOpacity> with an icon inside. 
+  
+  3) The new function also has access to the same navigattion prop as the regular component does. Use it to give the <TouchableOpacity> an onPress={} with navigation instructions.
+
+  `
+  IndexScreen.navigationOptions = ({navigation}) => {
+    return {
+      headerRight: <TouchableOpacity onPress={() => navigation.navigate('Go here')}>ICON HERE</TouchableOpacity>
+    }
+  }
+  `

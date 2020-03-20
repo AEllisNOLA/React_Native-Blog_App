@@ -18,7 +18,7 @@ const IndexScreen = ({ navigation }) => {
                             <View style={styles.row}>
                                 <Text style={styles.title}>{item.title}</Text>
                                 <TouchableOpacity onPress={() => deleteBlogPost(item.id)}>
-                                    <Feather name="trash" style={styles.icon} />
+                                    <Feather name="trash" style={styles.trashIcon} />
                                 </TouchableOpacity>
                             </View>
                         </TouchableOpacity>
@@ -28,6 +28,15 @@ const IndexScreen = ({ navigation }) => {
             />
         </View>
     )
+}
+
+// Customize items displayed in header
+IndexScreen.navigationOptions = ({ navigation }) => {
+    return {
+        headerRight: <TouchableOpacity onPress={() => navigation.navigate('Create')}>
+            <Feather name='plus' style={styles.plusIcon} />
+        </TouchableOpacity>
+    }
 }
 
 const styles = StyleSheet.create({
@@ -47,8 +56,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18
     },
-    icon: {
+    trashIcon: {
         fontSize: 24
+    },
+    plusIcon: {
+        paddingHorizontal: 20,
+        fontSize: 30
     }
 })
 
