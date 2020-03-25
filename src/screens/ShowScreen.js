@@ -1,6 +1,8 @@
 import React, { useContext } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Context } from '../context/BlogContext'
+import { Feather } from '@expo/vector-icons'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const ShowScreen = ({ navigation }) => {
     const { state } = useContext(Context)
@@ -12,11 +14,25 @@ const ShowScreen = ({ navigation }) => {
         <View>
             <Text>{blogPost.title}</Text>
             <Text>{blogPost.content}</Text>
-
         </View>
     )
 }
 
-const styles = StyleSheet.create({})
+ShowScreen.navigationOptions = ({ navigation }) => {
+    return {
+        headerRight: () =>
+            <TouchableOpacity
+                onPress={() => navigation.navigate('Edit', { id: navigation.getParam('id') })}>
+                <Feather name="edit-2" style={styles.editIcon} />
+            </TouchableOpacity>
+    }
+}
+
+const styles = StyleSheet.create({
+    editIcon: {
+        fontSize: 30,
+        paddingHorizontal: 20,
+    },
+})
 
 export default ShowScreen

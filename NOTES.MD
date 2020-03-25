@@ -287,3 +287,128 @@ return (
     }
   }
   `
+
+  
+  # 09. Saving a New Post
+  1) Add requisite <Text />, <TextInput /> and <Button /> fields to screen. Add local state for each input in order to make them controlled inputs. Give each <TextInput /> a value to match the state. Add an onChangeText to update state.
+
+  `
+  const [title, setTitle] = useState('')
+
+  return (
+    <View>
+      <Text>Enter Title:</Text>
+      <TextInput value={title} onChangeText={text => setTitle(text)}></TextInput>
+      <Button title="Add Blog Post" />
+    </View>
+  
+  )
+  `
+  
+  2) Style all the things!
+
+  3) In BlogContext.js, alter the addBlogPost helper function. Give the return function requisite arguments, such as 'title'. Add those arguments to the payload property within the dispatch function's argument object.
+
+  `
+  const addBlogPost = dispatch => {
+    return (title) => {
+      dispatch({ type: 'add_blogpost', payload: title })
+    }
+  }
+  `
+
+  4) Alter the reducer case to use the arguments from step 3.
+
+  `
+  case 'add_blogpost':
+    return [...state, {title: action.payload.title}]
+  `
+
+  5) In the screen with the form, import the { Context } and call useContext for it, bringing in anything you may be using. In this case, only addBlogPost is being used.
+
+  `
+  const {addBlogPost} = useContext(Context)
+  `
+
+  6) Add the function to the button with the items it is posting as arguments.
+
+  `
+  <Button title="Add Blog Post" onPress={() => addBlogPost(title)}/>
+  `
+
+  - At this point, new posts are appearing. A good user feature is to automatically navigate back on save. An easy way to do that would just be to call navigation.navigate() within the onPress handler, but this will not work when APIs are implemented because those are not instanteous. The following is the better way to do it and will work with APIs, databases, etc.
+
+  7) Pass a callback as part of the addBlogPost function in the onPress handler.
+
+    `
+  <Button 
+    title="Add Blog Post" 
+    onPress={() => {
+      addBlogPost(title, () => navigation.navigate('Index'))
+    }}/>
+  `
+  
+  8) Alter the addBlogPost() helper function in the BlogContext.js file.
+
+    `
+  const addBlogPost = dispatch => {
+    return (title, callback) => {
+      dispatch({ type: 'add_blogpost', payload: title })
+      callback()
+    }
+  }
+  `
+
+  That is all that is needed now, but to tie it in with an API, it would look more like:
+
+  `
+    const addBlogPost = dispatch => {
+    return async (title, callback) => {
+      try {
+        await axios.post(...)
+        dispatch({ type: 'add_blogpost', payload: title })
+        callback()
+      }
+      catch (error) {
+        console.log(`Error: ${error}`)
+      }
+      
+    }
+  }
+  
+  `
+  
+   # 10. Editing a Post
+
+   1) Add an edit icon to the top of ShowScreen using navigationOptions. Pass *navigation* as a destructured argument and feed the <TouchableOpacity> an *onPress* with the proper destination screen that has yet to be created using navigation.navigate(). Create the new destination, EditScreen. Import EditScreen into App.js and add it into the createStackNavigator. Confirm that tapping the edit icon on in ShowScreen brings you to the EditScreen. This shouldn't be anything new.
+
+   2) The IndexScreen is already passing the ShowScreen the post id via navigation.navigate() and ShowScreen is already using that id via navigation.getParam(). Because of that, you can extend the navigation.navigate() call in the Edit Icon's <TouchableOpacity> to include the id, as well, such as:
+
+  `
+  <TouchableOpacity onPress={() => navigation.navigate('Edit', { id: navigation.getParam('id') })}>
+    <Feather name="edit-2" style={styles.editIcon} />
+  </TouchableOpacity>
+  `
+
+  3) Now the EditScreen can receiving that id using navigation.getParam(). The EditScreen now knows which blog post it should be editing.
+
+  4) Upon render, EditScreen needs to retrieve the blog post being edited from Context and populate the state. Import useState() and useContext() from React and the Context from its context file. Find the proper post from the array of posts being retrieved from the context. Initialize state with the blog post.
+
+  `
+  const {state} = useContext(Context)
+  const blogPost = state.find(blogPost => blogPost.id === navigation.getParam('id'))
+
+  const [title, setTitle] = useState(blogPost.title)
+  `
+
+  5) Create a form and make it a controlled component.
+
+  `
+  <Text>Edit Title:</Text>
+  <TextInput value={title} onChangeText={newTitle => setTitle(newTitle)}>
+  `
+   
+  
+   
+
+ 
