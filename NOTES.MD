@@ -241,7 +241,7 @@ return (
 
   - All of that work essentially rebuilt *Redux* using React's *Context* system. 
 
-  # 06. Adding Delete Functionality
+# 06. Adding Delete Functionality
 - Any time you want to add new functionality to the *Context*, you have to: 
   
   1) create a helper function that will call the dispatch function, 
@@ -271,7 +271,7 @@ return (
   const blogPost = state.find(blogPost => blogPost.id === navigation.getParam('id'))
   `
 
-  # 08. Header Navigation
+# 08. Header Navigation
 - Navigation within the header is fairly similar to ordinary navigation with a few wrinkles.
 
   1) Create the new destination screen, import and export as necessary and add it to the stackNavigator object in App.js.
@@ -289,7 +289,7 @@ return (
   `
 
   
-  # 09. Saving a New Post
+# 09. Saving a New Post
   1) Add requisite <Text />, <TextInput /> and <Button /> fields to screen. Add local state for each input in order to make them controlled inputs. Give each <TextInput /> a value to match the state. Add an onChangeText to update state.
 
   `
@@ -378,7 +378,7 @@ return (
   
   `
   
-   # 10. Editing a Post
+# 10. Editing a Post (Part 1)
 
    1) Add an edit icon to the top of ShowScreen using navigationOptions. Pass *navigation* as a destructured argument and feed the <TouchableOpacity> an *onPress* with the proper destination screen that has yet to be created using navigation.navigate(). Create the new destination, EditScreen. Import EditScreen into App.js and add it into the createStackNavigator. Confirm that tapping the edit icon on in ShowScreen brings you to the EditScreen. This shouldn't be anything new.
 
@@ -409,6 +409,129 @@ return (
   `
    
   
-   
+# 11. Editing a Post (Part 2)
 
+## Since CreateScreen and EditScreen are showing the same form, it would be smart to extract that form into a reusable component. There will be a slight wrinkle in that the form must behave differently when displayed in each screen.
+
+1) Add all boilerplate. Return the form. Import any needed elements such as TextInput or Button, or styles referenced.
+
+2) Identify the items that will need to behave differently. For this example, the onSubmit would be different and the inital form values would be different.
+
+3) Add state to the form, since all components should be controlled. Remember to import useState.
+
+4) The screen can now be imported and placed on different screens as a JSX element once imported.
+
+## Customizing form for onSubmit via props for the CreateScreen
+
+1) Give the CreateScreen component a destructured navigation argument for use later.
+
+2) As a prop to <BlogPostForm /> in CreateScreen, add an onSubmit function. Give that function the arguments of title and content, since CreateScreen does not know what the title/content are.
+
+3) Inside of that function, call addBlogPost. Pass in the arguments of title, content, and a callback function that will navigate upon submission.
+
+`
+const CreateScreen = ({navigation}) => {
+  return <BlogPostForm onSubmit={(title, content) => {
+        addBlogPost(title, content, () => navigation.navigate('Index'))
+    }} />
+}
  
+`
+
+4) Destructure {onSubmit} as a prop in the BlogPostForm component. Next, in the button, add an onPress prop that runs the onSubmit prop with the title and content passed in.
+
+## Customizing form for onSubmit via props for the EditScreen
+
+1) Make sure the EditScreen has a destructured navigation prop. Add an onSubmit prop to the form, feeding it the title and content as arguments. Basically mirroring steps 1 & 2 for customizing the CreateScreen.
+
+2) Also include an initialValues prop to the form so that the fields will be prepopulated with the current state.
+
+`
+return <BlogPostForm 
+          intialValues={{title: blogPost.title, content: blogPost.content}} 
+          onSubmit={(title, content) => {
+
+          }} 
+        />
+`
+
+3) In BlogPostForm, add a destructured initialValues as a prop. Add those initialValues to the relevant state.
+
+4) Step 3 will cause an error because in CreateScreen will have intialValues is undefined. Use default props to make sure initialValues is never undefined.
+
+`
+BlogPostForm.defaultProps = {
+  initialValues: {
+    title: "",
+    content: ""
+  }
+}
+`
+
+## Completing the Edit Action
+1) In BlogContext, create an editBlogPost action. Pass the inner function title, content and id arguments.
+
+`
+const editBlogPost = dispatch => {
+  return (id, title, content) => {
+    dispatch({type: 'edit_blogpost', payload: {id, title, content}})
+  }
+}
+`
+
+2) Include editBlogPost in the createDataContext object being exported for use.
+
+3) In the EditScreen, you can now pull off editBlogPost from state and use it in the onSubmit callback. Also add navigation.pop() to pop back to the prior screen upon submission. NOTE: for readability sake, id has been assigned to a variable rather than constantly using navigation.getParam()
+
+`
+const EditScreen = ({ navigation }) => {
+    const id = navigation.getParam('id')
+    const { state, editBlogPost } = useContext(Context)
+
+    const blogPost = state.find(blogPost => blogPost.id === id)
+
+    return <BlogPostForm
+        initialValues={{ title: blogPost.title, content: blogPost.content }}
+        onSubmit={(title, content) => {
+            editBlogPost(id, title, content)
+        }} />
+}
+`
+
+4) Create the 'edit_blogpost' case statement in the reducer. 
+
+`
+// map through blogposts. 
+// If correct id, return blogpost inside the action.payload property (the edited one)
+// instead of the being iterated over (the original one)
+// else return original post
+
+case 'edit_blogpost':
+  return state.map(blogPost => {
+    return blogPost.id === action.payload.id ? action.payload : blogPost
+  })
+`
+
+5) To navigate back after editing, you can add a fourth argument into the editBlogPost call in the onSubmit of: () => navigation.pop()
+
+`
+return <BlogPostForm
+          initialValues={{ title: blogPost.title, content: blogPost.content }}
+          onSubmit={(title, content) => {
+            editBlogPost(id, title, content, () => navigation.pop())
+            }} 
+          />
+`
+
+Then, in the editBlogPost function, add a callback agrument and call it.
+
+`
+const editBlogPost = dispatch => {
+    return (id, title, content, callback) => {
+        dispatch({ type: 'edit_blogpost', payload: { id, title, content } })
+        if (callback) {
+            callback()
+        }
+    }
+}
+`
