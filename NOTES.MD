@@ -523,7 +523,9 @@ return <BlogPostForm
           />
 `
 
-Then, in the editBlogPost function, add a callback agrument and call it.
+Then, in the editBlogPost function, add a callback agrument and call it. 
+
+Note: the if (callback) statement has been added to all instances that use that callback mechanism for safety's sake. For example, if that function were to be called without a callback, the app would crash.
 
 `
 const editBlogPost = dispatch => {
@@ -535,3 +537,32 @@ const editBlogPost = dispatch => {
     }
 }
 `
+
+# 11. Saving to Outside API
+
+## Instalation
+*JSON Server* is only good for development purposes, but it gets the general idea across. However, when used with React Native it is a bit more complicated and it is a good idea to pair it with *ngrok* to avoid having to configure your computer. 
+
+1) Create a *jsonserver* folder outside of the project. Move into that folder and *npm init* to generate a new package.json file.
+
+2) *npm install json-server ngrok*
+
+3) In *jsonserver* folder, create the *db.json* file. Create an endpoint for the blogposts data with an empty array.
+
+`
+{
+  "blogposts": []
+}
+`
+
+4) In the *package.json* file of *jsonserver*, add a few new scripts. By default, json-server runs on port 3000. I customized it to run on 3002.
+
+`
+  "db": "json-server -w db.json -p 3002",
+  "tunnel": "ngrok http 3002"
+`
+
+5) Pull up two different cmd screens (for Windows). *npm run db* in the first. If no errors, this gets the local server up and running at the port in the script. 
+
+6) *npm run tunnel* in the second. This is going to take the local json-server and make it available outside of its locale, (i.e. your phone). it gives a random 8-hour http address that is a duplicate of your local host. The phone can use that address.
+
