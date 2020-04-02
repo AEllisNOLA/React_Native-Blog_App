@@ -538,7 +538,7 @@ const editBlogPost = dispatch => {
 }
 `
 
-# 11. Saving to Outside API
+# 12. Saving to Outside API
 
 ## Instalation
 *JSON Server* is only good for development purposes, but it gets the general idea across. However, when used with React Native it is a bit more complicated and it is a good idea to pair it with *ngrok* to avoid having to configure your computer. 
@@ -566,3 +566,139 @@ const editBlogPost = dispatch => {
 
 6) *npm run tunnel* in the second. This is going to take the local json-server and make it available outside of its locale, (i.e. your phone). it gives a random 8-hour http address that is a duplicate of your local host. The phone can use that address.
 
+# 13. REST
+
+## Setting up the Endpoint
+
+1) First off, *npm install axios*
+
+The non-REST flow is:
+  a) IndexScreen gets displayed by React Navigation
+  b) IndexScreen looks to Context Object to get data
+  c) IndexScreen renders blog posts
+
+But now, it will be
+  a) IndexScreen gets displayed by ReactNavigation
+  b) IndexScreen makes request to JSON-Server to get data
+  c) Index receives data (but it is probably empty)
+  d) Time passes for request to complete.
+  e) Data from JSON-server is stored through the useReducer hook
+  f) State changed, rerender. Now the actual list of posts shows.
+
+2) Create an *api* folder in *src* and create *jsonServer.js*. Import axios and export a created endpoint.
+
+`
+import axios from 'axios'
+
+export default axios.create({
+    baseURL: 'http://7d109c4c.ngrok.io/'
+})
+`
+
+3) import *jsonSever.js* into *BlogContext.js*. Now everything is ready to make requests within *BlogContext.js*
+
+
+## Reaching Out to Show All Posts
+
+1) Create a new action function to make request, *GET* response and dispatch an action.
+
+`
+const getBlogPosts = dispatch => {
+    return async () => {
+        const response = await jsonServer.get('/blogposts')
+
+        dispatch({ type: 'get_blogposts', payload: response.data })
+    }
+}
+`
+
+2) Add the case to the reducer. A response from the API is the total source of truth of data, so there is no reason to add the *[]* to dictate it is an array or *...state* to add it to existing state. What comes back from the API should be all that is needed or else you're doing it wrong.
+
+`
+ case 'get_blogposts':
+            return action.payload
+`
+
+3) Add the *getBlogPosts* action function to the export object
+
+4) Destructure *getBlogPosts* for use within the index screen. Call it from within a useEffect hook to keep from producing an infinite loop, with an array as the second argument to mandate it runs only once.
+
+`const { state, deleteBlogPost, getBlogPosts } = useContext(Context)
+
+    useEffect(() => {
+        // Get blog posts on load
+        getBlogPosts()
+    }, [])
+`
+
+## Creating Posts
+
+1) Refactor *addBlogPost* in *BlogContext.js* to make a *POST* request. Posts will appear in the API and the app will navigate back, but the newly created blog post will not appear.
+
+`
+const addBlogPost = dispatch => {
+    return async (title, content, callback) => {
+        await jsonServer.post('/blogposts', {title, content})
+
+        if (callback) {
+            callback()
+        }
+    }
+}
+`
+
+ Note: The dispatch statement that was formerly in the code is no longer needed, so it can be removed. As can the case for 'add_blogpost'. In the new version, any time a blog post is added, the endpoint is called, navigation back to the IndexScreen occurs, and the IndexScreen refreshes the list of posts.
+
+3) The reason the newly created post is not showing is due to the *useEffect* hook in *IndexScreen*. When navigating between screens in React Navigation, screens don't just stop existing. Just because the *IndexScreen* is out of sight does not mean it is gone. When it reappears due to the navigating back after post creation, it does not re-render and get state because it never left.
+
+The fix is to use the *didFocus*  listener that is included with React Navigation. Now whenever the screen is brought back to front-and-center, *getBlogPosts()* will run again.
+
+Then, clean up your mess by returning a function within the useEffect() hook to remove the listener.
+
+`
+useEffect(() => {
+        // Get blog posts on load
+        getBlogPosts()
+
+        // Get blog posts any time the Index Screen is front-and-center
+        const listener = navigation.addListener('didFocus', () => {
+            getBlogPosts()
+        })
+
+        // Clean up listener to prevent memory leak
+        return () => {
+            listener.remove()
+        }
+    }, [])
+`
+
+## Deleting a Post
+
+1) Refactor *deleteBlogPost* in *BlogContext.js* to make a *DELETE* request. 
+
+`
+const deleteBlogPost = dispatch => {
+    return async (id) => {
+        await jsonServer.delete(`/blogposts/${id}`)
+
+        dispatch({ type: 'delete_blogpost', payload: id })
+    }
+}
+`
+
+## Editing a Post
+1) Refactor *editBlogPost* in *BlogContext.js* to make a *PUT* request. As arguments, feed it the blog post with the id as wekk as the new title and content.
+
+`
+const editBlogPost = dispatch => {
+    return async (id, title, content, callback) => {
+        await jsonServer.put(`/blogposts/${id}`, { title, content })
+
+        dispatch({ type: 'edit_blogpost', payload: { id, title, content } })
+
+        if (callback) {
+            callback()
+        }
+    }
+}
+`

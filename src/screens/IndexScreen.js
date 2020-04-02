@@ -1,10 +1,24 @@
-import React, { useContext } from 'react'
-import { View, Text, StyleSheet, FlatList, Button, TouchableOpacity } from 'react-native'
+import React, { useContext, useEffect } from 'react'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import { Context } from '../context/BlogContext'
 import { Feather } from '@expo/vector-icons'
 
 const IndexScreen = ({ navigation }) => {
-    const { state, addBlogPost, deleteBlogPost } = useContext(Context)
+    const { state, deleteBlogPost, getBlogPosts } = useContext(Context)
+
+    useEffect(() => {
+        // Get blog posts on load
+        getBlogPosts()
+
+        // Get blog posts any time the Index Screen is front-and-center
+        const listener = navigation.addListener('didFocus', () => {
+            getBlogPosts()
+        })
+        // Clean up listener to prevent memory leak
+        return () => {
+            listener.remove()
+        }
+    }, [])
 
     return (
         <View>
